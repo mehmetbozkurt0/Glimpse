@@ -1,0 +1,31 @@
+CREATE TABLE ChatEntity (
+    chatId TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    isGroup INTEGER NOT NULL DEFAULT 0,
+    lastMessage TEXT,
+
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE TABLE MessageEntity (
+    messageId TEXT NOT NULL PRIMARY KEY,
+    chatId TEXT NOT NULL,
+    senderId TEXT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    isMine INTEGER NOT NULL DEFAULT 0
+);
+
+getAllChats:
+SELECT * FROM ChatEntity ORDER BY updatedAt DESC;
+
+getMessagesByChat:
+SELECT * FROM MessageEntity WHERE chatId = ? ORDER BY timestamp ASC;
+
+insertChat:
+INSERT OR REPLACE INTO ChatEntity(chatId, name, isGroup, lastMessage, updatedAt)
+VALUES (?, ?, ?, ?, ?);
+
+insertMessage:
+INSERT OR REPLACE INTO MessageEntity(messageId, chatId, senderId, content, timestamp, isMine)
+VALUES (?, ?, ?, ?, ?, ?);
