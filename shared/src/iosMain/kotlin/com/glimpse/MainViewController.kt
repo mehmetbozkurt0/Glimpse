@@ -1,6 +1,8 @@
 package com.glimpse
 
 import androidx.compose.ui.window.ComposeUIViewController
-import com.glimpse.App
+import com.glimpse.data.local.DatabaseDriverFactory
 
-fun MainViewController() = ComposeUIViewController { App() }
+fun MainViewController() = ComposeUIViewController {
+    App(driverFactory = DatabaseDriverFactory())
+}

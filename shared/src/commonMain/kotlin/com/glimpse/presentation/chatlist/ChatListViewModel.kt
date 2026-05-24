@@ -1,6 +1,7 @@
 package com.glimpse.presentation.chatlist
 
 import androidx.lifecycle.viewModelScope
+import com.glimpse.data.local.ChatEntity
 import com.glimpse.domain.repository.ChatRepository
 import com.glimpse.presentation.mvi.BaseViewModel
 import kotlinx.coroutines.flow.launchIn
@@ -19,7 +20,19 @@ class ChatListViewModel(
     private fun observeChats() {
         chatRepository.getAllChats()
             .onEach { chatList ->
-                setState { copy(chats = chatList, isLoading = false) }
+
+                val displayList = chatList.ifEmpty {
+                    listOf(
+                        ChatEntity(
+                            chatId = "test_agora_1",
+                            name = "Agora Test Kişisi",
+                            lastMessage = "Görüntülü aramayı test etmek için tıkla!",
+                            updatedAt = 0L,
+                            isGroup = 0L,
+                        )
+                    )
+                }
+                setState { copy(chats = displayList, isLoading = false) }
             }
             .launchIn(viewModelScope)
     }
