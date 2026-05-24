@@ -16,11 +16,11 @@ dependencies {
 }
 
 android {
-    namespace = "com.glimpse.glimpse"
+    namespace = "com.glimpse"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.glimpse.glimpse"
+        applicationId = "com.glimpse"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

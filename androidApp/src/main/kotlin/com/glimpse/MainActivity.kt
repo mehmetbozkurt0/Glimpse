@@ -1,4 +1,4 @@
-package com.glimpse.glimpse
+package com.glimpse
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
