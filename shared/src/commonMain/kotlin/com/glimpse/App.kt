@@ -2,6 +2,7 @@ package com.glimpse
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.*
+import com.glimpse.agora.AgoraManager
 import com.glimpse.data.local.DatabaseDriverFactory
 import com.glimpse.di.sharedModule
 import com.glimpse.presentation.chatlist.ChatListScreen
@@ -13,10 +14,16 @@ import org.koin.compose.KoinApplication
 import org.koin.dsl.module
 
 @Composable
-fun App(driverFactory: DatabaseDriverFactory) {
+fun App(
+    driverFactory: DatabaseDriverFactory,
+    agoraManager: AgoraManager
+) {
     KoinApplication(application = {
         modules(
-            module { single { driverFactory } },
+            module{
+                single { driverFactory }
+                single { agoraManager }
+            },
             sharedModule
         )
     }) {

@@ -37,6 +37,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.sqldelight.android)
             implementation(libs.ktor.client.cio)
+            implementation(libs.agora.rtc)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
