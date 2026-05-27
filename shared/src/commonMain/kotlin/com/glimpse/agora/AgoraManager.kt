@@ -10,7 +10,7 @@ interface AgoraManager{
     fun leaveChannel()
     fun toggleMic(muted: Boolean)
     fun toggleCamera(muted: Boolean)
-
+    val isRemoteVideoMuted: StateFlow<Boolean>
     fun setupLocalVideo(container: Any)
     fun setupRemoteVideo(container: Any, uid: Int)
 }

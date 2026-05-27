@@ -1,5 +1,6 @@
 package com.glimpse.presentation.videocall
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,6 +18,9 @@ import androidx.compose.ui.unit.sp
 import com.glimpse.agora.AgoraManager
 import com.glimpse.agora.AgoraVideoView
 import com.glimpse.ui.theme.*
+import glimpse.shared.generated.resources.Res
+import glimpse.shared.generated.resources.video_slash
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 
 @Composable
@@ -27,21 +31,16 @@ fun VideoCallScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val remoteUid by agoraManager.remoteUid.collectAsState()
 
     LaunchedEffect(chatId) {
-        agoraManager.initialize("0fcc8a88705740f3b1c35b131336a73c")
-        agoraManager.joinChannel(chatId)
+        viewModel.setEvent(VideoCallEvent.JoinCall(chatId))
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            agoraManager.leaveChannel()
+            viewModel.setEvent(VideoCallEvent.LeaveCall)
         }
     }
-
-    LaunchedEffect(state.isMicMuted) { agoraManager.toggleMic(state.isMicMuted) }
-    LaunchedEffect(state.isCameraOff) { agoraManager.toggleCamera(state.isCameraOff) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEffect.collect { effect ->
@@ -51,19 +50,32 @@ fun VideoCallScreen(
         }
     }
 
-    // Tam ekran bir kutu
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundWarm)
     ) {
-        if (remoteUid != null) {
-            AgoraVideoView(
-                manager = agoraManager,
-                isLocal = false,
-                remoteUid = remoteUid,
-                modifier = Modifier.fillMaxSize()
-            )
+        // --- 1. ANA EKRAN ---
+        if (state.remoteUid != null) {
+            if (state.isRemoteCameraOff) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(Color(0xFF1E1E1E)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(Res.drawable.video_slash),
+                        contentDescription = "Karşı taraf kamerasını kapattı",
+                        modifier = Modifier.size(72.dp)
+                    )
+                }
+            } else {
+                AgoraVideoView(
+                    manager = agoraManager,
+                    isLocal = false,
+                    remoteUid = state.remoteUid,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -79,20 +91,29 @@ fun VideoCallScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = if (remoteUid != null) "Görüşme Aktif" else "Bağlanıyor...", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = SurfaceWhite)
+            Text(text = if (state.remoteUid != null) "Görüşme Aktif" else "Bağlanıyor...", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = SurfaceWhite)
             Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(PrimaryPeach))
         }
 
-        // PiP
-        if (!state.isCameraOff) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 100.dp, end = 24.dp)
-                    .size(width = 120.dp, height = 180.dp)
-                    .clip(AppShapes.medium)
-                    .shadow(8.dp)
-            ) {
+        // --- 2. PiP KÜÇÜK EKRAN ---
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 100.dp, end = 24.dp)
+                .size(width = 120.dp, height = 180.dp)
+                .clip(AppShapes.medium)
+                .shadow(8.dp)
+                .background(Color(0xFF2C2C2C))
+        ) {
+            if (state.isCameraOff) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(Res.drawable.video_slash),
+                        contentDescription = "Kameram Kapalı",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            } else {
                 AgoraVideoView(
                     manager = agoraManager,
                     isLocal = true,

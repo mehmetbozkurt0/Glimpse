@@ -19,5 +19,5 @@ val sharedModule = module {
 
     factory { ChatRoomViewModel(get()) }
 
-    factory { VideoCallViewModel() }
+    factory { VideoCallViewModel(get()) }
 }

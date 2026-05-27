@@ -18,12 +18,21 @@ class AndroidAgoraManager(private val context: Context) : AgoraManager {
     private val _remoteUid = MutableStateFlow<Int?>(null)
     override val remoteUid: StateFlow<Int?> = _remoteUid.asStateFlow()
 
+    private val _isRemoteVideoMuted = MutableStateFlow(false)
+    override val isRemoteVideoMuted: StateFlow<Boolean> = _isRemoteVideoMuted.asStateFlow()
+
     private val mRtcEventHandler = object : IRtcEngineEventHandler() {
         override fun onUserJoined(uid: Int, elapsed: Int) {
             _remoteUid.value = uid
+            _isRemoteVideoMuted.value = false
         }
         override fun onUserOffline(uid: Int, reason: Int) {
             if (_remoteUid.value == uid) _remoteUid.value = null
+        }
+        override fun onUserMuteVideo(uid: Int, muted: Boolean) {
+            if (_remoteUid.value == uid) {
+                _isRemoteVideoMuted.value = muted
+            }
         }
     }
 
