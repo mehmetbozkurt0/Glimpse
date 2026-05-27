@@ -26,6 +26,7 @@ class ChatRoomViewModel(
             .launchIn(viewModelScope)
 
         viewModelScope.launch {
+            chatRepository.syncMessages(chatId)
             chatRepository.connectAndListen()
         }
     }
@@ -38,9 +39,9 @@ class ChatRoomViewModel(
             is ChatRoomEvent.SendMessage -> {
                 val content = uiState.value.currentMessage
                 if (content.isNotBlank()) {
+                    setState { copy(currentMessage = "") }
                     viewModelScope.launch {
                         chatRepository.sendMessage(chatId = event.chatId, content = content)
-                        setState { copy(currentMessage = "") }
                     }
                 }
             }

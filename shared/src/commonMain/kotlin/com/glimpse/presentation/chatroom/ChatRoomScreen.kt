@@ -21,7 +21,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import glimpse.shared.generated.resources.Res
 import glimpse.shared.generated.resources.user
@@ -187,6 +189,18 @@ fun MessageBubbleLayout(message: MessageEntity) {
 
     val bubbleColor = if (isMine) SenderBubbleColor else ReceiverBubbleColor
 
+    val timeString = remember(message.timestamp) {
+        if (message.timestamp == 0L) {
+            "..."
+        } else {
+            val instant = Instant.fromEpochMilliseconds(message.timestamp)
+            val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+            val hour = localDateTime.hour.toString().padStart(2, '0')
+            val minute = localDateTime.minute.toString().padStart(2, '0')
+            "$hour:$minute"
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = if (isMine) Alignment.End else Alignment.Start
@@ -210,7 +224,8 @@ fun MessageBubbleLayout(message: MessageEntity) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "10:45", fontSize = 11.sp, color = TextSecondary)
+            Text(text = timeString, fontSize = 11.sp, color = TextSecondary)
+
             if (isMine) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "✓✓", fontSize = 10.sp, color = TextSecondary)

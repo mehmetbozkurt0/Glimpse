@@ -10,4 +10,5 @@ interface ChatRepository {
 
     suspend fun sendMessage(chatId: String, content: String)
     suspend fun connectAndListen()
+    suspend fun syncMessages(chatId: String)
 }
