@@ -24,6 +24,10 @@ class ChatRoomViewModel(
                 setState { copy(messages = messageList, isLoading = false) }
             }
             .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            chatRepository.connectAndListen()
+        }
     }
 
     override fun handleEvent(event: ChatRoomEvent) {

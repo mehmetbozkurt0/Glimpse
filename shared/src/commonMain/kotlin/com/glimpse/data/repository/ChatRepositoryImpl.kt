@@ -5,23 +5,27 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.glimpse.data.local.ChatEntity
 import com.glimpse.data.local.GlimpseDatabase
 import com.glimpse.data.local.MessageEntity
-import com.glimpse.data.network.NetworkClient
+import com.glimpse.data.network.MessageDto
+import com.glimpse.data.network.SupabaseClient
 import com.glimpse.domain.repository.ChatRepository
-import io.ktor.client.plugins.websocket.webSocketSession
-import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.readText
+
+import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.channel
+import io.github.jan.supabase.realtime.decodeRecord
+import io.github.jan.supabase.realtime.postgresChangeFlow
+import io.github.jan.supabase.realtime.realtime
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 
 class ChatRepositoryImpl(
-    database: GlimpseDatabase,
-    private val networkClient: NetworkClient
+    database: GlimpseDatabase
 ) : ChatRepository {
 
     private val queries = database.glimpseDatabaseQueries
-    private var webSocketSession: WebSocketSession? = null
+    private val myDeviceId = "device_B"
 
     override fun getAllChats(): Flow<List<ChatEntity>> {
         return queries.getAllChats().asFlow().mapToList(Dispatchers.IO)
@@ -33,18 +37,25 @@ class ChatRepositoryImpl(
 
     override suspend fun sendMessage(chatId: String, content: String) {
         val messageId = "msg_${kotlin.random.Random.nextLong()}"
+
+        // 1. Yerel Veritabanına Kaydet
         queries.insertMessage(
             messageId = messageId,
             chatId = chatId,
-            senderId = "me",
+            senderId = myDeviceId,
             content = content,
-            timestamp = 0L, // İleride gerçek zaman damgası eklenecek
+            timestamp = 0L,
             isMine = 1
         )
 
-        // 2. Sonra WebSocket üzerinden backend'e iletiyoruz
+        // 2. Supabase Bulutuna Gönder
         try {
-            webSocketSession?.send(Frame.Text("""{"chatId":"$chatId", "content":"$content"}"""))
+            val messageDto = MessageDto(
+                chat_id = chatId,
+                sender_id = myDeviceId,
+                content = content
+            )
+            SupabaseClient.client.postgrest.from("messages").insert(messageDto)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -52,15 +63,33 @@ class ChatRepositoryImpl(
 
     override suspend fun connectAndListen() {
         try {
-            webSocketSession = networkClient.client.webSocketSession(host = "10.0.2.2", port = 8080, path = "/chat")
+            val supabase = SupabaseClient.client
 
-            for (frame in webSocketSession!!.incoming) {
-                if (frame is Frame.Text) {
-                    val receivedText = frame.readText()
+            supabase.realtime.connect()
+
+            val channel = supabase.channel("public-messages")
+            val changes = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
+                table = "messages"
+            }
+
+            channel.subscribe()
+
+            changes.collect { action ->
+                val newMsgDto = action.decodeRecord<MessageDto>()
+
+                if (newMsgDto.sender_id != myDeviceId) {
+                    queries.insertMessage(
+                        messageId = newMsgDto.id ?: "msg_${kotlin.random.Random.nextLong()}",
+                        chatId = newMsgDto.chat_id,
+                        senderId = newMsgDto.sender_id,
+                        content = newMsgDto.content,
+                        timestamp = 0L,
+                        isMine = 0
+                    )
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace() // Bağlantı koparsa veya hata olursa
+            e.printStackTrace()
         }
     }
 }
