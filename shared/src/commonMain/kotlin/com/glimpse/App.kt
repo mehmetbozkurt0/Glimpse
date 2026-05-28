@@ -5,12 +5,16 @@ import androidx.compose.runtime.*
 import com.glimpse.agora.AgoraManager
 import com.glimpse.data.local.DatabaseDriverFactory
 import com.glimpse.di.sharedModule
+import com.glimpse.presentation.auth.AuthEffect
+import com.glimpse.presentation.auth.AuthScreen
+import com.glimpse.presentation.auth.AuthViewModel
 import com.glimpse.presentation.chatlist.ChatListScreen
 import com.glimpse.presentation.chatroom.ChatRoomScreen
 import com.glimpse.presentation.navigation.Screen
 import com.glimpse.presentation.videocall.VideoCallScreen
 import com.glimpse.ui.theme.GlimpseTheme
 import org.koin.compose.KoinApplication
+import org.koin.compose.koinInject
 import org.koin.dsl.module
 
 @Composable
@@ -28,10 +32,32 @@ fun App(
         )
     }) {
         GlimpseTheme {
-            var currentScreen by remember { mutableStateOf<Screen>(Screen.ChatList) }
+            var currentScreen by remember { mutableStateOf<Screen>(Screen.Auth) }
 
             Crossfade(targetState = currentScreen) { screen ->
                 when (screen) {
+                    is Screen.Auth -> {
+                        val authViewModel: AuthViewModel = koinInject()
+                        val authState by authViewModel.uiState.collectAsState()
+
+                        LaunchedEffect(Unit){
+                            authViewModel.uiEffect.collect { effect ->
+                                when (effect) {
+                                    is AuthEffect.NavigateToChatList -> {
+                                        currentScreen = Screen.ChatList
+                                    }
+                                    is AuthEffect.ShowError -> {
+                                        println("GLIMPSE_AUTH_HATA: ${effect.message}")
+                                    }
+                                }
+                            }
+                        }
+
+                        AuthScreen(
+                            state = authState,
+                            onEvent = {event -> authViewModel.setEvent(event)}
+                        )
+                    }
                     is Screen.ChatList -> {
                         ChatListScreen(
                             onNavigateToChat = { chatId ->
