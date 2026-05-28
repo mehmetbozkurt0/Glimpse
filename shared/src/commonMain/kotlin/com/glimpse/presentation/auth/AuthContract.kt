@@ -8,7 +8,8 @@ data class AuthState(
     val isLoading: Boolean = false,
     val isLoginMode: Boolean = true,
     val emailInput: String = "",
-    val passwordInput: String = ""
+    val passwordInput: String = "",
+    val errorMessage: String? = null
 ) : UiState
 
 sealed interface AuthEvent : UiEvent {
@@ -17,6 +18,8 @@ sealed interface AuthEvent : UiEvent {
     data object ToggleAuthMode : AuthEvent
     data object Submit : AuthEvent
     data object CheckSession : AuthEvent
+    data object OnGoogleSignInClick : AuthEvent
+    data object ClearError: AuthEvent
 }
 
 sealed interface AuthEffect : UiEffect {

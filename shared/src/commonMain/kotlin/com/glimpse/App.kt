@@ -6,8 +6,9 @@ import com.glimpse.agora.AgoraManager
 import com.glimpse.data.local.DatabaseDriverFactory
 import com.glimpse.di.sharedModule
 import com.glimpse.presentation.auth.AuthEffect
-import com.glimpse.presentation.auth.AuthScreen
 import com.glimpse.presentation.auth.AuthViewModel
+import com.glimpse.presentation.auth.LoginScreen
+import com.glimpse.presentation.auth.RegisterScreen
 import com.glimpse.presentation.chatlist.ChatListScreen
 import com.glimpse.presentation.chatroom.ChatRoomScreen
 import com.glimpse.presentation.navigation.Screen
@@ -32,11 +33,11 @@ fun App(
         )
     }) {
         GlimpseTheme {
-            var currentScreen by remember { mutableStateOf<Screen>(Screen.Auth) }
+            var currentScreen by remember { mutableStateOf<Screen>(Screen.Login) }
 
             Crossfade(targetState = currentScreen) { screen ->
                 when (screen) {
-                    is Screen.Auth -> {
+                    is Screen.Login -> {
                         val authViewModel: AuthViewModel = koinInject()
                         val authState by authViewModel.uiState.collectAsState()
 
@@ -53,9 +54,29 @@ fun App(
                             }
                         }
 
-                        AuthScreen(
+                        LoginScreen(
                             state = authState,
-                            onEvent = {event -> authViewModel.setEvent(event)}
+                            onEvent = {event -> authViewModel.setEvent(event)},
+                            onNavigateToRegister = { currentScreen = Screen.Register}
+                        )
+                    }
+                    is Screen.Register -> {
+                        val authViewModel: AuthViewModel = koinInject()
+                        val authState by authViewModel.uiState.collectAsState()
+
+                        LaunchedEffect(Unit) {
+                            authViewModel.uiEffect.collect { effect ->
+                                when (effect) {
+                                    is AuthEffect.NavigateToChatList -> currentScreen = Screen.ChatList
+                                    is AuthEffect.ShowError -> println("GLIMPSE_AUTH_HATA: ${effect.message}")
+                                }
+                            }
+                        }
+
+                        RegisterScreen(
+                            state = authState,
+                            onEvent = { event -> authViewModel.setEvent(event) },
+                            onNavigateToLogin = { currentScreen = Screen.Login }
                         )
                     }
                     is Screen.ChatList -> {

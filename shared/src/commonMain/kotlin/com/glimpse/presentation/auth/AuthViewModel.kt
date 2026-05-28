@@ -25,14 +25,22 @@ class AuthViewModel(
                     }
                 }
             }
+            AuthEvent.OnGoogleSignInClick -> {
+                viewModelScope.launch {
+                    authRepository.signInWithGoogle()
+                }
+            }
             is AuthEvent.OnEmailChanged -> {
-                setState { copy(emailInput = event.email) }
+                setState { copy(emailInput = event.email, errorMessage = null) }
             }
             is AuthEvent.OnPasswordChanged -> {
-                setState { copy(passwordInput = event.password) }
+                setState { copy(passwordInput = event.password, errorMessage = null) }
             }
             AuthEvent.ToggleAuthMode -> {
-                setState { copy(isLoginMode = !isLoginMode) }
+                setState { copy(isLoginMode = !isLoginMode, errorMessage = null) }
+            }
+            AuthEvent.ClearError -> {
+                setState { copy(errorMessage = null) }
             }
             AuthEvent.Submit -> {
                 val email = uiState.value.emailInput
@@ -44,7 +52,7 @@ class AuthViewModel(
                     return
                 }
 
-                setState { copy(isLoading = true) }
+                setState { copy(isLoading = true, errorMessage = null) }
 
                 viewModelScope.launch {
                     val result = if (isLogin) {
@@ -58,7 +66,13 @@ class AuthViewModel(
                     result.onSuccess {
                         setEffect { AuthEffect.NavigateToChatList }
                     }.onFailure { error ->
-                        setEffect { AuthEffect.ShowError(error.message ?: "Beklenmeyen bir hata oluştu.") }
+                        // Hatanın tam tipini ve mesajını konsola da yazdıralım
+                        println("GLIMPSE_DETAYLI_HATA: Tip -> ${error::class.simpleName}, Mesaj -> ${error.message}")
+                        error.printStackTrace()
+
+                        // Ekrana hatanın tipini de basalım ki bilelim ne olduğunu
+                        val errorText = error.message ?: "Sistemsel Hata: ${error::class.simpleName}"
+                        setState { copy(errorMessage = errorText) }
                     }
                 }
             }

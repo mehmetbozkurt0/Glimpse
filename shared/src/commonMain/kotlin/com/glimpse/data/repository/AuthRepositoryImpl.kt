@@ -3,9 +3,17 @@ package com.glimpse.data.repository
 import com.glimpse.data.network.SupabaseClient
 import com.glimpse.domain.repository.AuthRepository
 import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 
 class AuthRepositoryImpl : AuthRepository {
+    override suspend fun signInWithGoogle() {
+        try {
+            SupabaseClient.client.auth.signInWith(Google)
+        } catch (e: Exception) {
+            println("GLIMPSE_HATA: Çıkış yapılırken hata oluştu -> ${e.message}")
+        }
+    }
 
     override suspend fun signUp(email: String, password: String): Result<Unit> {
         return try {
