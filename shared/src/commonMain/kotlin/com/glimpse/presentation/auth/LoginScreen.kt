@@ -1,10 +1,12 @@
 package com.glimpse.presentation.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,6 +89,50 @@ fun LoginScreen(
                     ) {
                         if (state.isLoading) CircularProgressIndicator(color = SurfaceWhite, modifier = Modifier.size(24.dp))
                         else Text(text = "Giriş Yap", fontWeight = FontWeight.Medium)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            thickness = DividerDefaults.Thickness,
+                            color = DividerColor
+                        )
+                        Text(
+                            text = "veya",
+                            color = TextSecondary.copy(alpha = 0.5f),
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            thickness = DividerDefaults.Thickness,
+                            color = DividerColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(
+                        onClick = { onEvent(AuthEvent.OnGoogleSignInClick) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = CircleShape,
+                        border = BorderStroke(1.dp, DividerColor)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🌐", fontSize = 20.sp, modifier = Modifier.padding(end = 8.dp))
+                            Text(
+                                text = "Google ile Devam Et",
+                                color = TextPrimary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
 
 

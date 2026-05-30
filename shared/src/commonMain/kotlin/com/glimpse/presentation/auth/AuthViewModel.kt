@@ -13,6 +13,14 @@ class AuthViewModel(
 
     init {
         setEvent(AuthEvent.CheckSession)
+
+        viewModelScope.launch {
+            authRepository.observeAuthState().collect { isLoggedIn ->
+                if (isLoggedIn) {
+                    setEffect { AuthEffect.NavigateToChatList }
+                }
+            }
+        }
     }
 
     override fun handleEvent(event: AuthEvent) {

@@ -12,6 +12,9 @@ object SupabaseClient {
     ) {
         install(Postgrest)
         install(Realtime)
-        install(Auth)
+        install(Auth) {
+            scheme = "glimpse"
+            host = "auth"
+        }
     }
 }

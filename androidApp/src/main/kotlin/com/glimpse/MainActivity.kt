@@ -1,5 +1,6 @@
 package com.glimpse
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        handleSupabaseDeeplink(intent)
+
         requestPermissionLauncher.launch(
             arrayOf(
                 android.Manifest.permission.CAMERA,
@@ -32,5 +35,10 @@ class MainActivity : ComponentActivity() {
                 agoraManager = AndroidAgoraManager(this)
             )
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleSupabaseDeeplink(intent)
     }
 }
